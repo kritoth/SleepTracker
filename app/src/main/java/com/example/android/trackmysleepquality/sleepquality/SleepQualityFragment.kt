@@ -24,11 +24,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.get
 import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
 import com.example.android.trackmysleepquality.database.SleepDatabase
-import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityBinding
 
 /**
@@ -37,8 +35,7 @@ import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityB
  * Once the user taps an icon, the quality is set in the current sleepNight
  * and the database is updated.
  */
-class SleepQualityFragment(
-        private val sleepNightKey: Long = 0L) : Fragment() {
+class SleepQualityFragment : Fragment() {
 
     /**
      * Called when the Fragment is ready to display content to the screen.
@@ -55,7 +52,7 @@ class SleepQualityFragment(
         val application = requireNotNull(this.activity).application
 
         //Get the arguments sent through navigation
-        val arguments = SleepQualityFragmentArgs.fromBundle(arguments!!)
+        val arguments = SleepQualityFragmentArgs.fromBundle(requireArguments())
         //Get the dataSource
         val dataSource  = SleepDatabase.getInstance(application).sleepDatabaseDao
         //create a factory

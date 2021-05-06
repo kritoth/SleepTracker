@@ -34,15 +34,15 @@ class SleepTrackerViewModel(
      * Properly encapsulated var to hold the current night, must be mutable in order to
      * let it be used for writing into the database
      */
-    private var _tonight = MutableLiveData<SleepNight>()
-    val tonight: LiveData<SleepNight>
+    private var _tonight = MutableLiveData<SleepNight?>()
+    val tonight: LiveData<SleepNight?>
         get() = _tonight
 
     /*
      * Properly encapsulated var to hold the navigation event, must be mutable in order to
      * let it be set when navigation is done
      */
-    private var  _navigateToSleepQuality = MutableLiveData<SleepNight>()
+    private val  _navigateToSleepQuality = MutableLiveData<SleepNight>()
     val navigateToSleepQuality: LiveData<SleepNight>
         get() = _navigateToSleepQuality
 
@@ -115,15 +115,15 @@ class SleepTrackerViewModel(
             // several nested ones this statement returns from.
             // In this case, we are specifying to return from launch(),
             // not the lambda.
-            val nightsEnd = _tonight.value ?: return@launch
+            val oldNight = _tonight.value ?: return@launch
 
             // Update the night in the database to add the end time.
-            nightsEnd.endTimeMilli = System.currentTimeMillis()
+            oldNight.endTimeMilli = System.currentTimeMillis()
 
-            update(nightsEnd)
+            update(oldNight)
 
             // Navigation event var is now holding a value so its change of state will be broadcasted to its observers
-            _navigateToSleepQuality.value = nightsEnd
+            _navigateToSleepQuality.value = oldNight
         }
     }
     /* Updates the database record with {@param SleepNight} */
@@ -157,7 +157,9 @@ class SleepTrackerViewModel(
     }
 
     /*
-     * Sets the event when navigation is done
+     * Sets the event when navigation is done. Call this immediately after navigating to [SleepQualityFragment]
+     * It will clear the navigation request, so if the user rotates their phone it won't navigate
+     * twice.
      */
     fun navigationDone(){
         _navigateToSleepQuality.value = null
