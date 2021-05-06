@@ -46,6 +46,14 @@ class SleepTrackerViewModel(
     val navigateToSleepQuality: LiveData<SleepNight>
         get() = _navigateToSleepQuality
 
+    /*
+     * Properly encapsulated var to hold the snack bar event, must be mutable in order to
+     * let it be set when showing is done
+     */
+    private var _showSnackbarEvent = MutableLiveData<Boolean>()
+    val showSnackBarEvent: LiveData<Boolean>
+        get() = _showSnackbarEvent
+
     /* Getting all the nights from the database */
     private val nights = database.getAllNights()
 
@@ -155,6 +163,8 @@ class SleepTrackerViewModel(
             clear()
             // And clear tonight since it's no longer in the database
             _tonight.value = null
+            // To trigger the snack bar showing event, set its value to true
+            _showSnackbarEvent.value = true
         }
     }
     /* Clears the database */
@@ -172,11 +182,15 @@ class SleepTrackerViewModel(
 
     /*
      * Sets the event when navigation is done. Call this immediately after navigating to [SleepQualityFragment]
-     * It will clear the navigation request, so if the user rotates their phone it won't navigate
-     * twice.
+     * It will clear the navigation request, so if the user rotates their phone it won't navigate twice.
      */
     fun navigationDone(){
         _navigateToSleepQuality.value = null
+    }
+
+    /** Sets the event when showing snack bar is done. */
+    fun doneShowingSnackbar(){
+        _showSnackbarEvent.value = false
     }
 }
 
