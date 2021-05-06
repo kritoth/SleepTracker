@@ -22,7 +22,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.get
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
+import com.example.android.trackmysleepquality.database.SleepDatabase
+import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityBinding
 
 /**
@@ -31,7 +37,8 @@ import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityB
  * Once the user taps an icon, the quality is set in the current sleepNight
  * and the database is updated.
  */
-class SleepQualityFragment : Fragment() {
+class SleepQualityFragment(
+        private val sleepNightKey: Long = 0L) : Fragment() {
 
     /**
      * Called when the Fragment is ready to display content to the screen.
@@ -46,6 +53,29 @@ class SleepQualityFragment : Fragment() {
                 inflater, R.layout.fragment_sleep_quality, container, false)
 
         val application = requireNotNull(this.activity).application
+
+        //Get the arguments sent through navigation
+        val arguments = SleepQualityFragmentArgs.fromBundle(arguments!!)
+        //Get the dataSource
+        val dataSource  = SleepDatabase.getInstance(application).sleepDatabaseDao
+        //create a factory
+        val sleepQualityViewModelFactory = SleepQualityViewModelFactory(arguments.sleepNightKey, dataSource)
+        //Get a ViewModel reference
+        val viewModel = ViewModelProvider(this, sleepQualityViewModelFactory).get(SleepQualityViewModel::class.java)
+        //Add the ViewModel to the binding object
+        binding.sleepQualityViewModel = viewModel
+
+        // Observe if a navigation is needed, ie. when the event var's state changes which occurs when any of the smilies are clicked
+        // Do the navigation and then change the state of the event var's state back indicating navigation is done
+        viewModel.navigateToSleepTracker.observe(viewLifecycleOwner, Observer {
+            if(it == true){ // Observed state is true, so ready to navigate
+                this.findNavController()
+                        .navigate(SleepQualityFragmentDirections
+                                .actionSleepQualityFragmentToSleepTrackerFragment())
+                //change the state of the event var's state back indicating navigation is done
+                viewModel.navigationDone()
+            }
+        })
 
         return binding.root
     }

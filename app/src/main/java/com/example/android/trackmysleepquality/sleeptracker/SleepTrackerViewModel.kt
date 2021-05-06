@@ -39,6 +39,14 @@ class SleepTrackerViewModel(
         get() = _tonight
 
     /*
+     * Properly encapsulated var to hold the navigation event, must be mutable in order to
+     * let it be set when navigation is done
+     */
+    private var  _navigateToSleepQuality = MutableLiveData<SleepNight>()
+    val navigateToSleepQuality: LiveData<SleepNight>
+        get() = _navigateToSleepQuality
+
+    /*
      * Getting all the nights from the database
      */
     private val nights = database.getAllNights()
@@ -99,6 +107,7 @@ class SleepTrackerViewModel(
      * 1. gets member val tonight's value
      * 2. sets its end time of the recording
      * 3. updates the record/data (entity) in the database via coroutine
+     * 4. updates the navigation event
      */
     fun onStopTracking(){
         viewModelScope.launch {
@@ -112,6 +121,9 @@ class SleepTrackerViewModel(
             nightsEnd.endTimeMilli = System.currentTimeMillis()
 
             update(nightsEnd)
+
+            // Navigation event var is now holding a value so its change of state will be broadcasted to its observers
+            _navigateToSleepQuality.value = nightsEnd
         }
     }
     /* Updates the database record with {@param SleepNight} */
@@ -142,6 +154,13 @@ class SleepTrackerViewModel(
      */
     val nightsString = Transformations.map(nights){ nights ->
         formatNights(nights, application.resources)
+    }
+
+    /*
+     * Sets the event when navigation is done
+     */
+    fun navigationDone(){
+        _navigateToSleepQuality.value = null
     }
 }
 

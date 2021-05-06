@@ -23,7 +23,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
 import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.database.SleepDatabaseDao
@@ -61,6 +63,19 @@ class SleepTrackerFragment : Fragment() {
         binding.lifecycleOwner = this
         // assign the viewModel-binding-variable to the relevant viewModel
         binding.sleepTrackerViewModel = sleepViewModel
+
+        // Observe if a navigation is needed, ie. when the event var's state changes which occurs when the Stop button is clicked
+        // Do the navigation and then change the state of the event var's state back indicating navigation is done
+        sleepViewModel.navigateToSleepQuality.observe(viewLifecycleOwner, Observer {
+            nightDone ->
+            nightDone.let {
+                this.findNavController()
+                        .navigate(SleepTrackerFragmentDirections
+                                .actionSleepTrackerFragmentToSleepQualityFragment(nightDone._nightId))
+                //change the state of the event var's state back indicating navigation is done
+                sleepViewModel.navigationDone()
+            }
+        })
 
         return binding.root
     }

@@ -35,6 +35,7 @@
             app:popEnterAnim="@anim/slide_in_right" />
     </fragment>
 
+    <!-- Note the argument tag, where we are passing a sleepNightKey from the SleepTrackerFragment to the SleepQualityFragment-->
     <fragment
         android:id="@+id/sleep_quality_fragment"
         android:name="com.example.android.trackmysleepquality.sleepquality.SleepQualityFragment"

@@ -15,3 +15,43 @@
  */
 
 package com.example.android.trackmysleepquality.sleepquality
+
+import androidx.lifecycle.*
+import com.example.android.trackmysleepquality.database.SleepDatabaseDao
+import kotlinx.coroutines.launch
+
+class SleepQualityViewModel(
+        val databaseDao: SleepDatabaseDao,
+        private val sleepNightKey: Long = 0L) : ViewModel(){
+
+    /*
+    * Properly encapsulated var to hold the navigation event, must be mutable in order to
+    * let it be set when navigation is done
+    */
+    private var  _navigateToSleepTracker = MutableLiveData<Boolean?>()
+    val navigateToSleepTracker: LiveData<Boolean?>
+        get() = _navigateToSleepTracker
+
+    /*
+    * Sets the event when navigation is done
+    */
+    fun navigationDone(){
+        _navigateToSleepTracker.value = null
+    }
+
+    /*
+     * Event handler for click listening. When any of the smilies are clicked:
+     * 1. gets the SleepNight entity from database by using its ID received in constructor
+     * 2. sets its quality received as @param
+     * 3. updates the entity in the database with the newly set quality record
+     * 4. sets the navigation event var to allow its observers to be notified
+     */
+    fun onSetSleepQuality(quality: Int){
+        viewModelScope.launch {
+            val tonight = databaseDao.get(sleepNightKey)
+            tonight.sleepQuality = quality
+            databaseDao.update(tonight)
+            _navigateToSleepTracker.value = true
+        }
+    }
+}
