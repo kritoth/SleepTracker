@@ -46,10 +46,24 @@ class SleepTrackerViewModel(
     val navigateToSleepQuality: LiveData<SleepNight>
         get() = _navigateToSleepQuality
 
-    /*
-     * Getting all the nights from the database
-     */
+    /* Getting all the nights from the database */
     private val nights = database.getAllNights()
+
+    /** states to show and hide the buttons.
+     * the fragment.xml contains the <enabled> property to each button, and gets the value of the following state variables respectively
+     * the START button should be visible when tonight is null,
+     * the STOP button should be visible when tonight is not null,
+     * the CLEAR button should be visible if nights contains any nights
+     */
+    val startButtonVisible = Transformations.map(tonight) {
+        null == it
+    }
+    val stopButtonVisible = Transformations.map(tonight) {
+        null != it
+    }
+    val clearButtonVisible = Transformations.map(nights) {
+        it?.isNotEmpty()
+    }
 
     /*
      * initialize the tonight variable via a private method
