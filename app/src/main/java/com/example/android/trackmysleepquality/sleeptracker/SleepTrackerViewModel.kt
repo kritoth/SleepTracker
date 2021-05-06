@@ -73,35 +73,43 @@ class SleepTrackerViewModel(
         it?.isNotEmpty()
     }
 
-    /*
-     * initialize the tonight variable via a private method
-     */
+    /** initialize the tonight variable via a private method */
     init {
         initializeTonight()
     }
 
-    /*
-     * The viewModelScope.launch{} is to start a coroutine in the ViewModelScope.
-     * See: https://developer.android.com/topic/libraries/architecture/coroutines
-     */
+    /** The viewModelScope.launch{} is to start a coroutine in the ViewModelScope. See: https://developer.android.com/topic/libraries/architecture/coroutines */
     private fun initializeTonight(){
         viewModelScope.launch { _tonight.value = getTonightFromDatabase() }
     }
 
-    /*
-     * Let the coroutine get tonight value from the database.
-     * If the start and end times are not the same, it means the night has already been completed so return null.
-     * Otherwise, return night.
-     */
+/** DAO OPERATIONS */
+    /** Let the coroutine get tonight value from the database. Otherwise, return night. */
     private suspend fun getTonightFromDatabase(): SleepNight? {
         var night = database.getTonight()
-
+        // If the start and end times are not the same, it means the night has already been completed so return null.
         if (night?.endTimeMilli != night?.startTimeMilli) {
             night = null
         }
         return night
     }
 
+    /* Effectively writes the @param newNight into the database */
+    private suspend fun insert(newNight: SleepNight) {
+        database.insert(newNight)
+    }
+
+    /* Updates the database record with {@param SleepNight} */
+    private suspend fun update(night: SleepNight){
+        database.update(night)
+    }
+
+    /* Clears the database */
+    private suspend fun clear(){
+        database.clear()
+    }
+
+/** EVENT HANDLERS */
     /*
      * Event handler for click listening. When Start button is clicked:
      * 1. creates a new Entity
@@ -118,10 +126,6 @@ class SleepTrackerViewModel(
 
             _tonight.value = getTonightFromDatabase()
         }
-    }
-    /* Effectively writes the @param newNight into the database */
-    private suspend fun insert(newNight: SleepNight) {
-        database.insert(newNight)
     }
 
     /*
@@ -148,10 +152,6 @@ class SleepTrackerViewModel(
             _navigateToSleepQuality.value = oldNight
         }
     }
-    /* Updates the database record with {@param SleepNight} */
-    private suspend fun update(night: SleepNight){
-        database.update(night)
-    }
 
     /*
      * Event handler for click listening. When Clear button is clicked:
@@ -167,11 +167,8 @@ class SleepTrackerViewModel(
             _showSnackbarEvent.value = true
         }
     }
-    /* Clears the database */
-    private suspend fun clear(){
-        database.clear()
-    }
 
+/** DATA TRANSFORMATIONS */
     /*
      * Transform a list of {@link SleepNight} entity into a nightsString using the formatNights() function
      * from {@link Util.kt}
@@ -180,6 +177,7 @@ class SleepTrackerViewModel(
         formatNights(nights, application.resources)
     }
 
+/** CHANGE OF STATE SETTERS */
     /*
      * Sets the event when navigation is done. Call this immediately after navigating to [SleepQualityFragment]
      * It will clear the navigation request, so if the user rotates their phone it won't navigate twice.
